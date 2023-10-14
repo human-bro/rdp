@@ -1,0 +1,56 @@
+name: Enable Remote Desktop
+
+on: [push, workflow_dispatch]
+
+jobs:
+  enable-remote-desktop:
+    runs-on: windows-latest
+    steps:
+      - name: Download ngrok
+        run: |
+          Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -
+
+OutFile ngrok.zip
+        shell: PowerShell
+
+      - name: Extract ngrok
+        run: Expand-Archive ngrok.zip
+        shell: PowerShell
+
+      - name: Authenticate with ngrok
+        run: |
+          .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        shell: PowerShell
+
+      - name: Enable Terminal Services
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 
+
+"fDenyTSConnections" -Value 0
+        shell: PowerShell
+
+      - name: Create Firewall Rule for Remote Desktop
+        run: |
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        shell: PowerShell
+
+      - name: Set User Authentication for RDP
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server
+
+\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+        shell: PowerShell
+
+      - name: Create Local User
+        run: |
+          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText 
+
+"P@ssw0rd!" -Force)
+        shell: PowerShell
+
+      - name: Create Tunnel with ngrok
+        run: |
+          .\ngrok\ngrok.exe tcp 3389
+        shell: PowerShell
