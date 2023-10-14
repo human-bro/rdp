@@ -14,10 +14,13 @@ RUN apt-get install -y \
     nano
 
 # Create a user for RDP access (customize as needed)
-RUN useradd <your-username> -m -s /bin/bash && \
-    echo "<your-username>:<your-password>" | chpasswd
+RUN useradd user -m -s /bin/bash && \
+    echo "user:root" | chpasswd
 
-# Start the RDP server on port 3389
+# Set the default keyboard layout to US English
+RUN echo "setxkbmap -layout us" >> /etc/xrdp/startwm.sh
+
+# Expose the RDP port
 EXPOSE 3389
 
 # Set the default command to start the RDP server
