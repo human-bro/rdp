@@ -1,0 +1,30 @@
+name: Self-Clone into Docker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Build Docker Image
+      run: docker build -t self-clone-container .
+
+    - name: Run Docker Container
+      run: docker run -d --name self-clone-container self-clone-container
+
+    - name: Copy Repository into Docker Container
+      run: |
+        CONTAINER_ID=$(docker ps -qf "name=self-clone-container")
+        REPO_PATH=$(pwd)
+        docker cp $REPO_PATH $CONTAINER_ID:/root/repo
+      working-directory: /root
+
+    - name: Access Docker Container
+      run: docker exec -it self-clone-container /bin/bash
