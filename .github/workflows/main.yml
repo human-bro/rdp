@@ -12,22 +12,24 @@ jobs:
           sudo apt install -y unzip
         shell: bash
 
-      - name: Download ngrok
+      - name: Download and extract ngrok
         run: |
           wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
           unzip ngrok.zip
+          chmod +x ngrok
+          sudo mv ngrok /usr/local/bin/
         shell: bash
 
       - name: Authenticate with ngrok
         run: |
-          ./ngrok/ngrok authtoken $NGROK_AUTH_TOKEN
+          ngrok authtoken $NGROK_AUTH_TOKEN
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: bash
 
       - name: Create Tunnel with ngrok
         run: |
-          ./ngrok/ngrok tcp 3389
+          ngrok tcp 3389
         shell: bash
 
       - name: Enable Remote Desktop
