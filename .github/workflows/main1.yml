@@ -1,20 +1,32 @@
-name: Build and Run Docker Container
+name: Enable Remote Desktop
 
-on:
-  push:
-    branches:
-      - main
+on: [push, workflow_dispatch]
 
 jobs:
-  build:
+  enable-remote-desktop:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Install Ngrok
+        run: |
+          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
+          unzip ngrok.zip
+          chmod +x ngrok
+          sudo mv ngrok /usr/local/bin/
+        shell: bash
 
-    - name: Build Docker Image
-      run: docker build -t my-ubuntu-rdp-container .
+      - name: Enable Remote Desktop
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xrdp
 
-    - name: Run Docker Container
-      run: docker run -d -p 3389:3389 --name ubuntu-rdp-container my-ubuntu-rdp-container
+          # Open RDP port in the firewall
+          sudo ufw allow 3389/tcp
+
+          # Start the xrdp service
+          sudo systemctl start xrdp
+        shell: bash
+
+      - name: Create Tunnel with Ngrok
+        run: |
+          ngrok tcp 3389
+        shell: bash
