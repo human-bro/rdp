@@ -1,18 +1,12 @@
-name: Enable Remote Desktop on Kali Linux
+name: Create ngrok Tunnel for Remote Desktop
 
 on: [push, workflow_dispatch]
 
 jobs:
-  enable-remote-desktop:
-    runs-on: ubuntu-latest
+  create-ngrok-tunnel:
+    runs-on: self-hosted
     steps:
-      - name: Update and install ngrok dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y unzip
-        shell: bash
-
-      - name: Download and extract ngrok
+      - name: Install ngrok
         run: |
           wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
           unzip ngrok.zip
@@ -30,10 +24,4 @@ jobs:
       - name: Create Tunnel with ngrok
         run: |
           ngrok tcp 3389
-        shell: bash
-
-      - name: Enable Remote Desktop
-        run: |
-          sudo apt install -y xrdp
-          sudo service xrdp start
         shell: bash
