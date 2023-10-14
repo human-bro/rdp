@@ -34,9 +34,9 @@ jobs:
 
       - name: Create Local User
         run: |
-          sudo useradd -m runneradmin
-          sudo echo "runneradmin:password" | sudo chpasswd
-          sudo usermod --shell /bin/bash runneradmin
+          sudo useradd -m runneradmin1
+          sudo echo "runneradmin1:password" | sudo chpasswd
+          sudo usermod --shell /bin/bash runneradmin1
         shell: bash
 
       - name: Create Tunnel with Ngrok
