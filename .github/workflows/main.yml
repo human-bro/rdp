@@ -1,48 +1,42 @@
-name: Enable Remote Desktop
+name: Enable Remote Desktop on Kali Linux
 
 on: [push, workflow_dispatch]
 
 jobs:
   enable-remote-desktop:
-    runs-on: windows-latest
+    runs-on: self-hosted
     steps:
       - name: Download ngrok
         run: |
-          Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
-        shell: PowerShell
-
-      - name: Extract ngrok
-        run: Expand-Archive ngrok.zip
-        shell: PowerShell
+          # Your download commands for ngrok on Kali Linux
+        shell: bash
 
       - name: Authenticate with ngrok
         run: |
-          .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
-        env:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        shell: PowerShell
+          # Your authentication commands for ngrok on Kali Linux
+        shell: bash
 
       - name: Enable Terminal Services
         run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-        shell: PowerShell
+          # Your commands to enable Terminal Services on Kali Linux
+        shell: bash
 
       - name: Create Firewall Rule for Remote Desktop
         run: |
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        shell: PowerShell
+          # Your commands to create firewall rules on Kali Linux
+        shell: bash
 
       - name: Set User Authentication for RDP
         run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-        shell: PowerShell
+          # Your commands to set user authentication for RDP on Kali Linux
+        shell: bash
 
       - name: Create Local User
         run: |
-          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-        shell: PowerShell
+          # Your commands to create a local user on Kali Linux
+        shell: bash
 
       - name: Create Tunnel with ngrok
         run: |
-          .\ngrok\ngrok.exe tcp 3389
-        shell: PowerShell
+          # Your commands to create a tunnel with ngrok on Kali Linux
+        shell: bash
