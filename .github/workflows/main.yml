@@ -39,7 +39,7 @@ jobs:
 
       - name: Create Local User
         run: |
-          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "password" -Force)
+          Set-LocalUser -Name "admin" -Password (ConvertTo-SecureString -AsPlainText "password@12" -Force)
         shell: PowerShell
 
       - name: Create Tunnel with ngrok
