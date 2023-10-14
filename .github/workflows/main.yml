@@ -1,48 +1,33 @@
-name: Enable Remote Desktop
+name: Enable Remote Desktop on Linux
 
 on: [push, workflow_dispatch]
 
 jobs:
   enable-remote-desktop:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
-      - name: Download ngrok
+      - name: Update and install ngrok dependencies
         run: |
-          Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
-        shell: PowerShell
+          sudo apt update
+          sudo apt install -y unzip
+        shell: bash
 
-      - name: Extract ngrok
-        run: Expand-Archive ngrok.zip
-        shell: PowerShell
+      - name: Download and extract ngrok
+        run: |
+          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
+          unzip ngrok.zip
+          chmod +x ngrok
+          sudo mv ngrok /usr/local/bin/
+        shell: bash
 
       - name: Authenticate with ngrok
         run: |
-          .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+          ngrok authtoken $NGROK_AUTH_TOKEN
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        shell: PowerShell
-
-      - name: Enable Terminal Services
-        run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-        shell: PowerShell
-
-      - name: Create Firewall Rule for Remote Desktop
-        run: |
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        shell: PowerShell
-
-      - name: Set User Authentication for RDP
-        run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-        shell: PowerShell
-
-      - name: Create Local User
-        run: |
-          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-        shell: PowerShell
+        shell: bash
 
       - name: Create Tunnel with ngrok
         run: |
-          .\ngrok\ngrok.exe tcp 3389
-        shell: PowerShell
+          ngrok tcp 3389
+        shell: bash
