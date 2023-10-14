@@ -1,4 +1,4 @@
-name: Self-Clone into Docker
+name: Build and Run Docker Container
 
 on:
   push:
@@ -14,17 +14,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build Docker Image
-      run: docker build -t self-clone-container .
+      run: docker build -t my-ubuntu-rdp-container .
 
     - name: Run Docker Container
-      run: docker run -d --name self-clone-container self-clone-container
-
-    - name: Copy Repository into Docker Container
-      run: |
-        CONTAINER_ID=$(docker ps -qf "name=self-clone-container")
-        REPO_PATH=$(pwd)
-        docker cp $REPO_PATH $CONTAINER_ID:/root/repo
-      working-directory: /root
-
-    - name: Access Docker Container
-      run: docker exec -it self-clone-container /bin/bash
+      run: docker run -d -p 3389:3389 --name ubuntu-rdp-container my-ubuntu-rdp-container
