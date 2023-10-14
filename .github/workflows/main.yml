@@ -1,48 +1,37 @@
-name: Enable Remote Desktop
+name: RDP Server Setup
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-  enable-remote-desktop:
-    runs-on: windows-latest
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: Download ngrok
-        run: |
-          Invoke-WebRequest https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
-        shell: PowerShell
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Extract ngrok
-        run: Expand-Archive ngrok.zip
-        shell: PowerShell
+    - name: Build Docker Image
+      run: docker build -t my-rdp-server .
 
-      - name: Authenticate with ngrok
-        run: |
-          .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
-        env:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        shell: PowerShell
+    - name: Push Docker Image
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker tag my-rdp-server ${{ secrets.DOCKER_USERNAME }}/my-rdp-server
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-rdp-server
 
-      - name: Enable Terminal Services
-        run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-        shell: PowerShell
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-      - name: Create Firewall Rule for Remote Desktop
-        run: |
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        shell: PowerShell
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      - name: Set User Authentication for RDP
-        run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-        shell: PowerShell
+    - name: Deploy RDP Server
+      run: |
+        # Use your preferred method to deploy the Docker image, e.g., Azure, AWS, GCP, or your own infrastructure.
+        # Ensure the RDP port is exposed.
 
-      - name: Create Local User
-        run: |
-          Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-        shell: PowerShell
-
-      - name: Create Tunnel with ngrok
-        run: |
-          .\ngrok\ngrok.exe tcp 3389
-        shell: PowerShell
