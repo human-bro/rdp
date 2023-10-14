@@ -32,6 +32,13 @@ jobs:
           sudo systemctl start xrdp
         shell: bash
 
+      - name: Create Local User
+        run: |
+          sudo useradd -m runneradmin
+          sudo echo "runneradmin:password" | sudo chpasswd
+          sudo usermod --shell /bin/bash runneradmin
+        shell: bash
+
       - name: Create Tunnel with Ngrok
         run: |
           ngrok tcp 3389
