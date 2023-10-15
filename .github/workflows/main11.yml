@@ -1,4 +1,4 @@
-name: Enable Remote Desktop
+name: Enable Remote Desktop with Ubuntu GUI
 
 on: [push, workflow_dispatch]
 
@@ -20,15 +20,24 @@ jobs:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: bash
 
-      - name: Enable Remote Desktop
+      - name: Install Xfce Desktop Environment
         run: |
           sudo apt-get update
+          sudo apt-get install -y xfce4 xfce4-goodies
+        shell: bash
+
+      - name: Install xrdp
+        run: |
           sudo apt-get install -y xrdp
+        shell: bash
 
-          # Open RDP port in the firewall
+      - name: Open RDP Port in the Firewall
+        run: |
           sudo ufw allow 3389/tcp
+        shell: bash
 
-          # Start the xrdp service
+      - name: Start the xrdp Service
+        run: |
           sudo systemctl start xrdp
         shell: bash
 
