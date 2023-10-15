@@ -16,8 +16,13 @@ jobs:
       - name: Install XFCE4
         run: |
           sudo apt-get update
-          sudo apt-get install -y xfce4 xfce4-session
-          xfce4-session-logout --logout
+          sudo apt-get install -y xfce4
+        shell: bash
+
+      - name: Start XFCE4 Session Manually
+        run: |
+          export $(dbus-launch)
+          startxfce4
         shell: bash
 
       - name: Install Xrdp
