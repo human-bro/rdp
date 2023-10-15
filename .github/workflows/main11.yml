@@ -1,4 +1,4 @@
-name: Enable Remote Desktop and SSH
+name: Enable Remote Desktop with Debugging
 
 on: [push, workflow_dispatch]
 
@@ -6,26 +6,12 @@ jobs:
   enable-remote-desktop:
     runs-on: ubuntu-latest
     steps:
-      - name: Install XFCE4
+      - name: Debug Info
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xfce4
-        shell: bash
-
-      - name: Enable Remote Desktop
-        run: |
-          sudo apt-get install -y xrdp
-          # Open RDP port in the firewall
-          sudo ufw allow 3389/tcp
-          # Start the xrdp service
-          sudo systemctl start xrdp
-        shell: bash
-
-      - name: Create Local User
-        run: |
-          sudo useradd -m runneradmin1
-          sudo echo "runneradmin1:password" | sudo chpasswd
-          sudo usermod --shell /bin/bash runneradmin1
+          echo "Starting the workflow..."
+          whoami
+          id
+          cat /etc/os-release
         shell: bash
 
       - name: Install Ngrok
@@ -37,20 +23,59 @@ jobs:
         shell: bash
 
       - name: Set Ngrok Authtoken
-        run: ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        run: |
+          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: bash
 
-      - name: Create Tunnel with Ngrok
+      - name: Install Xfce Desktop Environment
         run: |
-          ngrok tcp 3389
+          sudo apt-get update
+          sudo apt-get install -y xfce4 xubuntu-icon-theme xfce4-terminal
         shell: bash
 
-      - name: SSH Access
+      - name: Install xrdp
         run: |
-          # Add your SSH private key for access to the server
-          echo "$YOUR_SSH_PRIVATE_KEY" > ssh_key
-          chmod 600 ssh_key
-          ssh -i ssh_key runneradmin1@localhost -p 3389
+          sudo apt-get install -y xrdp
         shell: bash
+
+      - name: Open RDP Port in the Firewall
+        run: |
+          sudo ufw allow 3389/tcp
+        shell: bash
+
+      - name: Start the xrdp Service
+        run: |
+          sudo systemctl start xrdp
+        shell: bash
+
+      - name: Create Local User
+        run: |
+          sudo useradd -m runneradmin1
+          sudo echo "runneradmin1:password" | sudo chpasswd
+          sudo usermod --shell /bin/bash runneradmin1
+        shell: bash
+
+      - name: Create .xsession File
+        run: |
+          echo "xfce4-session" > $RUNNER_WORKSPACE/.xsession
+          sudo mv $RUNNER_WORKSPACE/.xsession /home/runneradmin1/
+          sudo chown runneradmin1:runneradmin1 /home/runneradmin1/.xsession
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
+        shell: bash
+
+      - name: Debug Info
+        run: |
+          echo "Checking xrdp status..."
+          sudo systemctl status xrdp
+          echo "Checking RDP port status..."
+          sudo ufw status
+          echo "Checking xrdp logs..."
+          cat /var/log/xrdp.log
+          echo "Workflow completed."
+        shell: bash
+
+      - name: Keep Workflow Running
+        run: sleep 30d
