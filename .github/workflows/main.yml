@@ -1,63 +1,56 @@
-name: RDP Server with Ngrok Tunnel
+name: Enable Remote Desktop and SSH
 
-on:
-  push:
-    branches:
-      - main
+on: [push, workflow_dispatch]
 
 jobs:
-  build:
+  enable-remote-desktop:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Install XFCE4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xfce4
+        shell: bash
 
-    - name: Start Ngrok
-      run: |
-        wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
-        unzip ngrok.zip
-        ./ngrok authtoken $NGROK_AUTH_TOKEN
-        ./ngrok tcp 3389
-      env:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+      - name: Enable Remote Desktop
+        run: |
+          sudo apt-get install -y xrdp
+          # Open RDP port in the firewall
+          sudo ufw allow 3389/tcp
+          # Start the xrdp service
+          sudo systemctl start xrdp
+        shell: bash
 
-    - name: Build Docker Image
-      run: docker build -t my-rdp-server .
+      - name: Create Local User
+        run: |
+          sudo useradd -m runneradmin1
+          sudo echo "runneradmin1:password" | sudo chpasswd
+          sudo usermod --shell /bin/bash runneradmin1
+        shell: bash
 
-    - name: Push Docker Image
-      run: |
-        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-        docker tag my-rdp-server ${{ secrets.DOCKER_USERNAME }}/my-rdp-server
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-rdp-server
+      - name: Install Ngrok
+        run: |
+          wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
+          unzip ngrok.zip
+          chmod +x ngrok
+          sudo mv ngrok /usr/local/bin/
+        shell: bash
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
+      - name: Set Ngrok Authtoken
+        run: ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        shell: bash
 
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Create Tunnel with Ngrok
+        run: |
+          ngrok tcp 3389
+        shell: bash
 
-    - name: Start RDP Server with Ngrok Tunnel
-      run: |
-        # Use your preferred method to deploy the Docker image, e.g., Azure, AWS, or your own infrastructure.
-        # Ensure the RDP port is exposed.
-        docker run -d -p 3389:3389 --name rdp-server ${{ secrets.DOCKER_USERNAME }}/my-rdp-server
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-
-    - name: Wait for RDP Server to Start
-      run: sleep 30 # Adjust the duration as needed
-
-    - name: Connect to RDP Server via Ngrok
-      run: |
-        # Get the Ngrok public URL
-        NGROK_URL=$(curl -s localhost:4040/api/tunnels | jq -r .tunnels[0].public_url)
-        # Connect to the RDP server using the Ngrok URL
-        xfreerdp /v:$NGROK_URL /u:<your-username> /p:<your-password> /w:1366 /h:768
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        <your-username>: <your-username> # Replace with your RDP username
-        <your-password>: <your-password> # Replace with your RDP password
+      - name: SSH Access
+        run: |
+          # Add your SSH private key for access to the server
+          echo "$YOUR_SSH_PRIVATE_KEY" > ssh_key
+          chmod 600 ssh_key
+          ssh -i ssh_key runneradmin1@localhost -p 3389
+        shell: bash
