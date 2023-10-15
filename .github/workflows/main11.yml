@@ -66,5 +66,16 @@ jobs:
           RUNNER_WORKSPACE: ${{ runner.workspace }}
         shell: bash
 
+      - name: Debug Info
+        run: |
+          echo "Checking xrdp status..."
+          sudo systemctl status xrdp
+          echo "Checking RDP port status..."
+          sudo ufw status
+          echo "Checking xrdp logs..."
+          cat /var/log/xrdp.log
+          echo "Workflow completed."
+        shell: bash
+
       - name: Keep Workflow Running
         run: sleep 30d
