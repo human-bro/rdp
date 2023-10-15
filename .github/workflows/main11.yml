@@ -1,4 +1,4 @@
-name: Enable Remote Desktop with Ubuntu GUI
+name: Enable Remote Desktop with Xfce
 
 on: [push, workflow_dispatch]
 
@@ -23,7 +23,7 @@ jobs:
       - name: Install Xfce Desktop Environment
         run: |
           sudo apt-get update
-          sudo apt-get install -y xfce4 xfce4-goodies
+          sudo apt-get install -y xfce4 xubuntu-icon-theme xfce4-terminal
         shell: bash
 
       - name: Install xrdp
@@ -48,8 +48,12 @@ jobs:
           sudo usermod --shell /bin/bash runneradmin1
         shell: bash
 
+      - name: Set Xfce Session
+        run: |
+          echo "xfce4-session" > /home/runneradmin1/.xsession
+        shell: bash
+
       - name: Create Tunnel with Ngrok
         run: |
           ngrok tcp 3389
         shell: bash
-        
