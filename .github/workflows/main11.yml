@@ -57,9 +57,13 @@ jobs:
           sudo usermod --shell /bin/bash runneradmin1
         shell: bash
 
-      - name: Set Xfce Session
+      - name: Create .xsession File
         run: |
-          echo "xfce4-session" > /home/runneradmin1/.xsession
+          echo "xfce4-session" > $RUNNER_WORKSPACE/.xsession
+          sudo mv $RUNNER_WORKSPACE/.xsession /home/runneradmin1/
+          sudo chown runneradmin1:runneradmin1 /home/runneradmin1/.xsession
+        env:
+          RUNNER_WORKSPACE: ${{ runner.workspace }}
         shell: bash
 
       - name: Debug Info
