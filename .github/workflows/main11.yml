@@ -6,6 +6,28 @@ jobs:
   enable-remote-desktop:
     runs-on: ubuntu-latest
     steps:
+      - name: Install XFCE4
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xfce4
+        shell: bash
+
+      - name: Enable Remote Desktop
+        run: |
+          sudo apt-get install -y xrdp
+          # Open RDP port in the firewall
+          sudo ufw allow 3389/tcp
+          # Start the xrdp service
+          sudo systemctl start xrdp
+        shell: bash
+
+      - name: Create Local User
+        run: |
+          sudo useradd -m runneradmin1
+          sudo echo "runneradmin1:password" | sudo chpasswd
+          sudo usermod --shell /bin/bash runneradmin1
+        shell: bash
+
       - name: Install Ngrok
         run: |
           wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
@@ -20,25 +42,6 @@ jobs:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: bash
 
-      - name: Enable Remote Desktop
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xrdp
-
-          # Open RDP port in the firewall
-          sudo ufw allow 3389/tcp
-
-          # Start the xrdp service
-          sudo systemctl start xrdp
-        shell: bash
-
-      - name: Create Local User
-        run: |
-          sudo useradd -m runneradmin1
-          sudo echo "runneradmin1:password" | sudo chpasswd
-          sudo usermod --shell /bin/bash runneradmin1
-        shell: bash
-
       - name: Create Tunnel with Ngrok
         run: |
           ngrok tcp 3389
@@ -51,19 +54,3 @@ jobs:
           chmod 600 ssh_key
           ssh -i ssh_key runneradmin1@localhost -p 3389
         shell: bash
-
-      - name: Run echo "Checking xrdp status..."
-        run: echo "Checking xrdp status..."
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-
-      - name: Check xrdp status
-        run: sudo systemctl status xrdp
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-
-      - name: Check RDP port status
-        run: sudo ufw status
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-
-      - name: Check xrdp logs
-        run: cat /var/log/xrdp.log
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
