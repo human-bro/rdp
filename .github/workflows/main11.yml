@@ -1,4 +1,4 @@
-name: Enable Remote Desktop with Debugging
+name: Enable Remote Desktop
 
 on: [push, workflow_dispatch]
 
@@ -6,14 +6,6 @@ jobs:
   enable-remote-desktop:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug Info
-        run: |
-          echo "Starting the workflow..."
-          whoami
-          id
-          cat /etc/os-release
-        shell: bash
-
       - name: Install Ngrok
         run: |
           wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip -O ngrok.zip
@@ -23,59 +15,31 @@ jobs:
         shell: bash
 
       - name: Set Ngrok Authtoken
-        run: |
-          ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+        run: ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         shell: bash
 
-      - name: Install Xfce Desktop Environment
+      - name: Enable Remote Desktop
         run: |
           sudo apt-get update
-          sudo apt-get install -y xfce4 xubuntu-icon-theme xfce4-terminal
-        shell: bash
-
-      - name: Install xrdp
-        run: |
           sudo apt-get install -y xrdp
-        shell: bash
 
-      - name: Open RDP Port in the Firewall
-        run: |
+          # Open RDP port in the firewall
           sudo ufw allow 3389/tcp
-        shell: bash
 
-      - name: Start the xrdp Service
-        run: |
+          # Start the xrdp service
           sudo systemctl start xrdp
         shell: bash
 
       - name: Create Local User
         run: |
-          sudo useradd -m runneradmin1
-          sudo echo "runneradmin1:password" | sudo chpasswd
-          sudo usermod --shell /bin/bash runneradmin1
+          sudo useradd -m runneradmin
+          sudo echo "runneradmin:password" | sudo chpasswd
+          sudo usermod --shell /bin/bash runneradmin
         shell: bash
 
-      - name: Create .xsession File
+      - name: Create Tunnel with Ngrok
         run: |
-          echo "xfce4-session" > $RUNNER_WORKSPACE/.xsession
-          sudo mv $RUNNER_WORKSPACE/.xsession /home/runneradmin1/
-          sudo chown runneradmin1:runneradmin1 /home/runneradmin1/.xsession
-        env:
-          RUNNER_WORKSPACE: ${{ runner.workspace }}
+          ngrok tcp 3389
         shell: bash
-
-      - name: Debug Info
-        run: |
-          echo "Checking xrdp status..."
-          sudo systemctl status xrdp
-          echo "Checking RDP port status..."
-          sudo ufw status
-          echo "Checking xrdp logs..."
-          cat /var/log/xrdp.log
-          echo "Workflow completed."
-        shell: bash
-
-      - name: Keep Workflow Running
-        run: sleep 30d
