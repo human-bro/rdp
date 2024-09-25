@@ -6,7 +6,7 @@
 
 ### Resulting Markdown
 
-Here’s how it would look in your `README.md`:
+Here’s how it would look in your `README.md`
 
 ## Clone the Repository
 
