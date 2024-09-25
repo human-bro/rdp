@@ -1,17 +1,42 @@
+# Harmony AI 
 
-### Usage
+## My Small personal where i am making a general voice assitant to do basic tasks
 
-1. **View the Repository**: When someone views your repository on GitHub, they will see the command wrapped in triple backticks.
-2. **Copy Functionality**: A small copy icon will appear in the upper right corner of the code block. Users can click this icon to copy the command directly.
 
-### Resulting Markdown
+## Installation 
 
-Here’s how it would look in your `README.md`
-
-## Clone the Repository
-
-To clone the repository locally, use the following command:
-
+clone the repo locally
 ```bash
 git clone https://github.com/ksai-krishna/harmony_ai
 ```
+create a virtual environment (optional) 
+```bash
+python -m venv venv
+```
+To activate the virtual environment
+```bash
+venv\Scripts\activate
+```
+Install requirements
+```bash
+pip install -r requirements.txt
+ ```
+ ```bash 
+ python app.py
+ ``` 
+
+
+
+## The tasks list
+
+* When asked to **Play a _song name_ in spotify** it open spotify and plays the particular song.
+* Its can also search for a particular youtube video and automatically opens the first video By saying **Search _topic name_ on youtube**.
+
+* If you say **search _topic_name_ in google** . It searches that topic on google and reads out the **Description** if present for that topic. 
+* If you say **Mute** or **Unmute** It Mutes or Unmutes the system.
+* If you say **say the current** It says the current time.
+* If you say **say the current** It says the current Date.
+* If you say **I love you harmony** a secret suprise is revealed 🎁. 
+* If you say **Help** its reads out all the available.
+* If you say **stop listening** It stops listening and can be restarted by saying **harmony start**
+* If you say **Quit** it quits the voice assistant.
