@@ -8,10 +8,10 @@
 
 Here’s how it would look in your `README.md`:
 
-```markdown
 ## Clone the Repository
 
 To clone the repository locally, use the following command:
 
 ```bash
 git clone https://github.com/ksai-krishna/harmony_ai
+```
